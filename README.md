@@ -1,16 +1,24 @@
-Cognome Nome: Kurtulaj Stiven
+#PROGETTO-QUINTA
 
-Titolo: Responsabile delle finanze personali
+#Cognome Nome
+Kurtulaj Stiven
 
-Tagline: "Tieni sotto controllo le tue finanze, un clic alla volta"
+#Titolo
+Responsabile delle finanze personali
 
-Descrizione: Applicazione web per monitorare e gestire spese e entrate personali, con categorie, report mensili e budget personalizzati.
+#Tagline
+"Tieni sotto controllo le tue finanze, un clic alla volta"
 
-Descrizione completa: L'app consente agli utenti di inserire entrate e uscite, categorizzarle (es. cibo, affitto, tempo libero), visualizzare grafici e riepiloghi mensili, impostare budget per categoria, ricevere promemoria per pagamenti ricorrenti ed esportare dati in CSV/PDF. Autenticazione tramite JWT per proteggere i dati degli utenti. Flusso principale: registrazione/login → dashboard con saldo e grafici → aggiunta/gestione transazioni → impostazione budget e promemoria → esportazione report.
+#Descrizione
+Applicazione web per monitorare e gestire spese e entrate personali, con categorie, report mensili e budget personalizzati.
 
-Target: Persone che vogliono monitorare e gestire facilmente le proprie spese e entrate personali.
+#Descrizione completa
+L'app consente agli utenti di inserire entrate e uscite, categorizzarle (es. cibo, affitto, tempo libero), visualizzare grafici e riepiloghi mensili, impostare budget per categoria, ricevere promemoria per pagamenti ricorrenti ed esportare dati in CSV/PDF. Autenticazione tramite JWT per proteggere i dati degli utenti. Flusso principale: registrazione/login → dashboard con saldo e grafici → aggiunta/gestione transazioni → impostazione budget e promemoria → esportazione report.
 
-Concorrenti:
+#Target
+Persone che vogliono monitorare e gestire facilmente le proprie spese e entrate personali.
+
+#Concorrenti
 
 Menta
 YNAB (Hai bisogno di un budget)
@@ -21,7 +29,7 @@ HTML, CSS, JavaScript (frontend)
 PHP (backend)
 SQL (database)
 
-REQUISITI FUNZIONALITÀ APPLICAZIONE:
+#REQUISITI FUNZIONALITÀ APPLICAZIONE
 
 1. Gestione Autenticazione Utenti
 
@@ -166,6 +174,7 @@ Storico
 
 11.3 L’interfaccia deve essere responsiva e fruibile anche da mobile.
 
-link risultato IA:https://finanza-zen-31.lovable.app
+#LINK RISULTATO IA
+https://finanza-zen-31.lovable.app
 
-link pubblico alla web app:
+#LINK PUBBLICO WEB APP:
