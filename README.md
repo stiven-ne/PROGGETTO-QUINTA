@@ -51,15 +51,16 @@ Persone che vogliono monitorare e gestire facilmente le proprie spese e entrate 
 
 # 📑 REQUISITI FUNZIONALITÀ APPLICAZIONE
 # 🔗 Link Funzionalità applicazione
-https://docs.google.com/document/d/15khKfmwZSusfzOvUIRdNgMfASjiJ8sK5QQxswmG2FYI/edit?tab=t.0
+https://docs.google.com/document/d/15khKfmwZSusfzOvUIRdNgMfASjiJ8sK5QQxswmG2FYI/edit?usp=sharing
 # 🔗 Link delle funzionalità che leggono/modificano i database
-https://docs.google.com/document/d/10RVlCPmxz5h7dOp_MUMbLqtaEptxm90veDmJZI0SMmg/edit?tab=t.0
+https://docs.google.com/document/d/10RVlCPmxz5h7dOp_MUMbLqtaEptxm90veDmJZI0SMmg/edit?usp=sharing
  
-
 ---
 
 # 🔗 Link Risultato IA
 https://finanza-zen-31.lovable.app
+
+---
 
 # 🔗 Link pubblico Web App
 *(inserire qui il link pubblico quando disponibile)*
