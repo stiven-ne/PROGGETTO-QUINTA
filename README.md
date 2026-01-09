@@ -58,7 +58,7 @@ https://docs.google.com/document/d/10RVlCPmxz5h7dOp_MUMbLqtaEptxm90veDmJZI0SMmg/
 ---
 
 # 🔗 Link Risultato IA
-https://finanza-zen-31.lovable.app
+[https://finanza-zen-31.lovable.app](https://lovable.dev/projects/ce45cbf1-a5aa-49a0-8d86-66056851fc9d?utm_source=lovable-badge)
 
 ---
 
