@@ -1,5 +1,5 @@
 -- ======================================
--- DATABASE: gestione_finanze
+-- DATABASE
 -- ======================================
 
 CREATE DATABASE IF NOT EXISTS gestione_finanze
@@ -9,8 +9,9 @@ COLLATE utf8mb4_unicode_ci;
 USE gestione_finanze;
 
 -- ======================================
--- TABELLA USERS
+-- USERS
 -- ======================================
+
 CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     email VARCHAR(255) NOT NULL UNIQUE,
@@ -19,19 +20,64 @@ CREATE TABLE users (
 ) ENGINE=InnoDB;
 
 -- ======================================
--- TABELLA CATEGORIES
+-- ROLES
 -- ======================================
+
+CREATE TABLE roles (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(50) UNIQUE NOT NULL
+) ENGINE=InnoDB;
+
+-- ======================================
+-- PRIVILEGES
+-- ======================================
+
+CREATE TABLE privileges (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    code VARCHAR(50) UNIQUE NOT NULL,
+    description VARCHAR(255)
+) ENGINE=InnoDB;
+
+-- ======================================
+-- USER_ROLES
+-- ======================================
+
+CREATE TABLE user_roles (
+    user_id INT,
+    role_id INT,
+    PRIMARY KEY (user_id, role_id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- ======================================
+-- ROLE_PRIVILEGES
+-- ======================================
+
+CREATE TABLE role_privileges (
+    role_id INT,
+    privilege_id INT,
+    PRIMARY KEY (role_id, privilege_id),
+    FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE,
+    FOREIGN KEY (privilege_id) REFERENCES privileges(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- ======================================
+-- CATEGORIES
+-- ======================================
+
 CREATE TABLE categories (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NULL,
     name VARCHAR(100) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_category_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 -- ======================================
--- TABELLA TRANSACTIONS
+-- TRANSACTIONS
 -- ======================================
+
 CREATE TABLE transactions (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
@@ -41,13 +87,14 @@ CREATE TABLE transactions (
     description TEXT,
     date DATE NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_transaction_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    CONSTRAINT fk_transaction_category FOREIGN KEY (category_id) REFERENCES categories(id)
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (category_id) REFERENCES categories(id)
 ) ENGINE=InnoDB;
 
 -- ======================================
--- TABELLA BUDGETS
+-- BUDGETS
 -- ======================================
+
 CREATE TABLE budgets (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
@@ -56,14 +103,15 @@ CREATE TABLE budgets (
     year INT NOT NULL,
     amount DECIMAL(10,2) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_budget_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    CONSTRAINT fk_budget_category FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE,
-    CONSTRAINT unique_budget UNIQUE (user_id, category_id, month, year)
+    UNIQUE (user_id, category_id, month, year),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 -- ======================================
--- TABELLA REMINDERS
+-- REMINDERS
 -- ======================================
+
 CREATE TABLE reminders (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
@@ -72,28 +120,90 @@ CREATE TABLE reminders (
     due_date DATE NOT NULL,
     recurring TINYINT(1) DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_reminder_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 -- ======================================
--- TABELLA NOTIFICATIONS
+-- NOTIFICATIONS
 -- ======================================
+
 CREATE TABLE notifications (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
     message TEXT NOT NULL,
     is_read TINYINT(1) DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_notification_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 -- ======================================
--- TABELLA USER TOKENS
+-- USER TOKENS
 -- ======================================
+
 CREATE TABLE user_tokens (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
     token TEXT NOT NULL,
     expires_at TIMESTAMP NOT NULL,
-    CONSTRAINT fk_token_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
+
+-- ======================================
+-- INSERT RUOLI
+-- ======================================
+
+INSERT INTO roles (name) VALUES
+('ADMIN'),
+('USER');
+
+-- ======================================
+-- INSERT PRIVILEGI
+-- ======================================
+
+INSERT INTO privileges (code, description) VALUES
+('CREATE_TRANSACTION','Inserire transazione'),
+('DELETE_TRANSACTION','Eliminare transazione'),
+('VIEW_TRANSACTION','Visualizzare transazioni'),
+('CREATE_CATEGORY','Creare categoria'),
+('DELETE_CATEGORY','Eliminare categoria'),
+('CREATE_BUDGET','Creare budget'),
+('VIEW_BUDGET','Visualizzare budget'),
+('CREATE_REMINDER','Creare promemoria'),
+('VIEW_NOTIFICATION','Visualizzare notifiche'),
+('MANAGE_USERS','Gestione utenti');
+
+-- ======================================
+-- ADMIN → TUTTI I PRIVILEGI
+-- ======================================
+
+INSERT INTO role_privileges
+SELECT 1, id FROM privileges;
+
+-- ======================================
+-- USER → PRIVILEGI BASE
+-- ======================================
+
+INSERT INTO role_privileges VALUES
+(2,1),(2,3),
+(2,4),
+(2,6),(2,7),
+(2,8),
+(2,9);
+
+-- ======================================
+-- ESEMPIO UTENTI
+-- ======================================
+
+INSERT INTO users (email,password_hash) VALUES
+('admin@mail.com','hash_admin'),
+('user@mail.com','hash_user');
+
+-- ======================================
+-- ASSEGNA RUOLI
+-- ======================================
+
+INSERT INTO user_roles VALUES
+(1,1),
+(2,2);
+
+
