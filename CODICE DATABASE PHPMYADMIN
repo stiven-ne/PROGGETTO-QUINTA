@@ -1,290 +1,68 @@
--- ======================================
--- DATABASE
--- ======================================
+DROP DATABASE IF EXISTS silver_palm_tree;
+CREATE DATABASE silver_palm_tree;
+USE silver_palm_tree;
 
-CREATE DATABASE IF NOT EXISTS gestione_finanze
-CHARACTER SET utf8mb4
-COLLATE utf8mb4_unicode_ci;
+-- 1. TABELLA TENANTS (Le "Case" o "Aziende")
+CREATE TABLE tenants (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    slug VARCHAR(100) UNIQUE NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
-USE gestione_finanze;
-
--- ======================================
--- USERS
--- ======================================
-
+-- 2. TABELLA USERS (Collegata al Tenant)
 CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    email VARCHAR(255) NOT NULL UNIQUE,
-    password_hash VARCHAR(255) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB;
+    tenant_id INT NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    role ENUM('user', 'admin') DEFAULT 'user',
+    permissions TEXT,
+    refresh_token TEXT,
+    FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE
+);
 
--- ======================================
--- ROLES
--- ======================================
-
-CREATE TABLE roles (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(50) UNIQUE NOT NULL
-) ENGINE=InnoDB;
-
--- ======================================
--- PRIVILEGES
--- ======================================
-
-CREATE TABLE privileges (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    code VARCHAR(50) UNIQUE NOT NULL,
-    description VARCHAR(255)
-) ENGINE=InnoDB;
-
--- ======================================
--- USER_ROLES
--- ======================================
-
-CREATE TABLE user_roles (
-    user_id INT,
-    role_id INT,
-    PRIMARY KEY (user_id, role_id),
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE
-) ENGINE=InnoDB;
-
--- ======================================
--- ROLE_PRIVILEGES
--- ======================================
-
-CREATE TABLE role_privileges (
-    role_id INT,
-    privilege_id INT,
-    PRIMARY KEY (role_id, privilege_id),
-    FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE,
-    FOREIGN KEY (privilege_id) REFERENCES privileges(id) ON DELETE CASCADE
-) ENGINE=InnoDB;
-
--- ======================================
--- CATEGORIES
--- ======================================
-
-CREATE TABLE categories (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NULL,
-    name VARCHAR(100) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-) ENGINE=InnoDB;
-
--- ======================================
--- TRANSACTIONS
--- ======================================
-
+-- 3. TABELLA TRANSAZIONI (Filtra per Utente E per Tenant)
 CREATE TABLE transactions (
     id INT AUTO_INCREMENT PRIMARY KEY,
+    tenant_id INT NOT NULL,
     user_id INT NOT NULL,
-    category_id INT NOT NULL,
-    type ENUM('entrata','uscita') NOT NULL,
+    type ENUM('entrata', 'uscita') NOT NULL,
     amount DECIMAL(10,2) NOT NULL,
+    category VARCHAR(100),
     description TEXT,
     date DATE NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY (category_id) REFERENCES categories(id)
-) ENGINE=InnoDB;
+    FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
 
--- ======================================
--- BUDGETS
--- ======================================
-
+-- 4. TABELLA BUDGET
 CREATE TABLE budgets (
     id INT AUTO_INCREMENT PRIMARY KEY,
+    tenant_id INT NOT NULL,
     user_id INT NOT NULL,
-    category_id INT NOT NULL,
-    month TINYINT NOT NULL,
-    year INT NOT NULL,
-    amount DECIMAL(10,2) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE (user_id, category_id, month, year),
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE
-) ENGINE=InnoDB;
+    category VARCHAR(100),
+    limit_amount DECIMAL(10,2),
+    month INT,
+    year INT,
+    FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
 
--- ======================================
--- REMINDERS
--- ======================================
-
+-- 5. TABELLA PROMEMORIA
 CREATE TABLE reminders (
     id INT AUTO_INCREMENT PRIMARY KEY,
+    tenant_id INT NOT NULL,
     user_id INT NOT NULL,
-    title VARCHAR(255) NOT NULL,
+    title VARCHAR(255),
     amount DECIMAL(10,2),
-    due_date DATE NOT NULL,
-    recurring TINYINT(1) DEFAULT 0,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    due_date DATE,
+    is_paid BOOLEAN DEFAULT FALSE,
+    FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-) ENGINE=InnoDB;
+);
 
--- ======================================
--- NOTIFICATIONS
--- ======================================
-
-CREATE TABLE notifications (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
-    message TEXT NOT NULL,
-    is_read TINYINT(1) DEFAULT 0,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-) ENGINE=InnoDB;
-
--- ======================================
--- USER TOKENS
--- ======================================
-
-CREATE TABLE user_tokens (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
-    token TEXT NOT NULL,
-    expires_at TIMESTAMP NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-) ENGINE=InnoDB;
-
--- ======================================
--- INSERT RUOLI
--- ======================================
-
-INSERT INTO roles (name) VALUES
-('ADMIN'),
-('USER');
-
--- ======================================
--- INSERT PRIVILEGI
--- ======================================
-
-INSERT INTO privileges (code, description) VALUES
-('CREATE_TRANSACTION','Inserire transazione'),
-('DELETE_TRANSACTION','Eliminare transazione'),
-('VIEW_TRANSACTION','Visualizzare transazioni'),
-('CREATE_CATEGORY','Creare categoria'),
-('DELETE_CATEGORY','Eliminare categoria'),
-('CREATE_BUDGET','Creare budget'),
-('VIEW_BUDGET','Visualizzare budget'),
-('CREATE_REMINDER','Creare promemoria'),
-('VIEW_NOTIFICATION','Visualizzare notifiche'),
-('MANAGE_USERS','Gestione utenti');
-
--- ======================================
--- ADMIN → TUTTI I PRIVILEGI
--- ======================================
-
-INSERT INTO role_privileges
-SELECT 1, id FROM privileges;
-
--- ======================================
--- USER → PRIVILEGI BASE
--- ======================================
-
-INSERT INTO role_privileges VALUES
-(2,1),(2,3),
-(2,4),
-(2,6),(2,7),
-(2,8),
-(2,9);
-
--- ======================================
--- ESEMPIO UTENTI
--- ======================================
-
-INSERT INTO users (email,password_hash) VALUES
-('admin@mail.com','hash_admin'),
-('user@mail.com','hash_user');
-
--- ======================================
--- ASSEGNA RUOLI
--- ======================================
-
-INSERT INTO user_roles VALUES
-(1,1),
-(2,2);
-
--- ======================================
--- VIEW 1: SALDO UTENTE (DASHBOARD)
--- ======================================
-
-CREATE VIEW view_user_balance AS
-SELECT 
-    user_id,
-    SUM(CASE WHEN type='entrata' THEN amount ELSE 0 END) AS totale_entrate,
-    SUM(CASE WHEN type='uscita' THEN amount ELSE 0 END) AS totale_uscite,
-    SUM(CASE 
-        WHEN type='entrata' THEN amount
-        ELSE -amount
-    END) AS saldo_totale
-FROM transactions
-GROUP BY user_id;
-
--- ======================================
--- VIEW 2: RIEPILOGO MENSILE
--- ======================================
-
-CREATE VIEW view_monthly_summary AS
-SELECT 
-    user_id,
-    YEAR(date) AS anno,
-    MONTH(date) AS mese,
-    SUM(CASE WHEN type='entrata' THEN amount ELSE 0 END) AS entrate,
-    SUM(CASE WHEN type='uscita' THEN amount ELSE 0 END) AS uscite
-FROM transactions
-GROUP BY user_id, YEAR(date), MONTH(date);
-
--- ======================================
--- VIEW 3: SPESE PER CATEGORIA
--- ======================================
-
-CREATE VIEW view_expenses_by_category AS
-SELECT 
-    t.user_id,
-    c.name AS categoria,
-    SUM(t.amount) AS totale_speso
-FROM transactions t
-JOIN categories c ON t.category_id = c.id
-WHERE t.type='uscita'
-GROUP BY t.user_id, c.name;
-
--- ======================================
--- VIEW 4: UTILIZZO BUDGET
--- ======================================
-
-CREATE VIEW view_budget_usage AS
-SELECT 
-    b.user_id,
-    c.name AS categoria,
-    b.month,
-    b.year,
-    b.amount AS budget,
-    COALESCE(SUM(t.amount),0) AS speso,
-    ROUND((COALESCE(SUM(t.amount),0)/b.amount)*100,2) AS percentuale_utilizzata
-FROM budgets b
-JOIN categories c ON b.category_id = c.id
-LEFT JOIN transactions t 
-    ON t.category_id = b.category_id
-    AND t.user_id = b.user_id
-    AND t.type='uscita'
-    AND MONTH(t.date)=b.month
-    AND YEAR(t.date)=b.year
-GROUP BY b.user_id,c.name,b.month,b.year,b.amount;
-
--- ======================================
--- VIEW 5: PROMEMORIA PROSSIMI
--- ======================================
-
-CREATE VIEW view_upcoming_reminders AS
-SELECT 
-    user_id,
-    title,
-    amount,
-    due_date,
-    DATEDIFF(due_date, CURRENT_DATE) AS giorni_mancanti
-FROM reminders
-WHERE due_date >= CURRENT_DATE;
-
+-- DATI DI ESEMPIO (Per testare subito)
+INSERT INTO tenants (name, slug) VALUES ('Azienda Alfa', 'azienda-alfa');
+INSERT INTO users (tenant_id, email, password, role) VALUES (1, 'admin@alfa.it', 'password_hash_qui', 'admin');
 
