@@ -15,18 +15,43 @@
 
 ---
 
-## 📝 Descrizione
-Applicazione web per monitorare e gestire spese e entrate personali, con categorie, report mensili e budget personalizzati.
+## 📖 Descrizione completa
+Expense Manager – Silver Palm Tree è un’applicazione web per la gestione delle finanze personali e aziendali sviluppata con architettura **multi-tenant**.
+
+Il sistema permette agli utenti di registrare e gestire entrate, uscite, budget e promemoria di pagamento, mantenendo una separazione completa dei dati tra diversi gruppi di utenti (tenant).
+
+Ogni utente appartiene a un tenant (azienda o spazio di lavoro) e può accedere esclusivamente alle informazioni relative al proprio ambiente.
 
 ---
 
-## 📖 Descrizione completa
-L'app consente agli utenti di inserire entrate e uscite, categorizzarle (es. cibo, affitto, tempo libero), visualizzare grafici e riepiloghi mensili, impostare budget per categoria, ricevere promemoria per pagamenti ricorrenti ed esportare dati in CSV/PDF.
+L’applicazione è strutturata su un backend Node.js con API REST e un database MySQL relazionale, mentre il frontend è sviluppato in React per garantire una gestione dinamica e interattiva dei dati.
 
-Autenticazione tramite **JWT** per proteggere i dati degli utenti.
+---
 
-**Flusso principale:**  
-Registrazione/Login → Dashboard con saldo e grafici → Aggiunta/gestione transazioni → Impostazione budget e promemoria → Esportazione report.
+Il sistema gestisce le seguenti aree principali:
+
+- **Gestione utenti e tenant:** creazione utenti associati a un tenant e isolamento dei dati tra organizzazioni.
+- **Gestione transazioni:** registrazione, modifica ed eliminazione di entrate e uscite con classificazione per categoria.
+- **Gestione budget:** impostazione di limiti di spesa mensili per categoria e monitoraggio delle spese rispetto al budget.
+- **Gestione promemoria:** creazione e gestione di scadenze di pagamento con stato di pagamento aggiornabile.
+- **Analisi dati:** calcolo dinamico di saldo, riepiloghi mensili e analisi delle spese basate sulle transazioni registrate.
+
+---
+
+Tutti i dati sono memorizzati in un database MySQL composto dalle seguenti entità principali:
+- tenants
+- users
+- transactions
+- budgets
+- reminders
+
+---
+
+Il sistema è progettato per garantire:
+- separazione sicura dei dati tra tenant
+- gestione centralizzata delle finanze
+- scalabilità dell’architettura backend
+- interrogazione efficiente dei dati tramite query SQL
 
 ---
 
