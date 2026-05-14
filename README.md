@@ -361,6 +361,4 @@ Fornire un sistema semplice ma completo per la gestione delle finanze personali 
 
 ---
 
-# 🔗 Link pubblico Web App
-*(inserire qui il link pubblico quando disponibile)*
 
