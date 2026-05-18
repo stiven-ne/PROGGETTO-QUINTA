@@ -1,102 +1,205 @@
-# 🧾 Scenari d’Uso Dettagliati
+# 📌 Use Case Documentation
 
-Di seguito vengono riportati i principali scenari d’uso dell’applicazione **Silver Palm Tree – Expense Manager**, coerenti con il modello UML e con il database MySQL.
+## 1️⃣ Inserimento Transazione
 
----
-
-# 💸 Scenario 1 — Creazione Transazione
-
-## 👤 Attore
-Utente
-
-## 📌 Descrizione
-L’utente inserisce una nuova transazione (entrata o uscita) nel sistema.
-
-## 🔄 Flusso principale
-1. L’utente accede alla sezione “Transazioni”
-2. Seleziona “Crea transazione”
-3. Inserisce i dati richiesti:
-   - tipo (entrata / uscita)
-   - importo
-   - categoria
-   - descrizione
-   - data
-4. Il sistema valida i dati inseriti
-5. La transazione viene salvata nel database nella tabella `transactions`
-6. Il sistema associa automaticamente `user_id` e `tenant_id`
-7. Il saldo della dashboard viene aggiornato
-
-## 🗄️ Tabella coinvolta
-- transactions
+> Questo è il cuore operativo dell'app. Include logicamente il controllo del budget.
 
 ---
 
-# 📊 Scenario 2 — Gestione Budget
+### 👤 Attore Primario
+**Utente**
 
-## 👤 Attore
-Utente
-
-## 📌 Descrizione
-L’utente crea e gestisce un budget mensile per categoria di spesa.
-
-## 🔄 Flusso principale
-1. L’utente accede alla sezione “Budget”
-2. Seleziona “Crea budget”
-3. Inserisce:
-   - categoria
-   - limite di spesa
-   - mese
-   - anno
-4. Il sistema valida i dati
-5. Il budget viene salvato nella tabella `budgets`
-6. Il sistema calcola le spese già effettuate dalla tabella `transactions`
-7. Viene mostrato lo stato del budget (speso / rimanente)
-
-## 🗄️ Tabella coinvolta
-- budgets
+### ✅ Pre-condizioni
+- L'utente è autenticato
+- L'utente si trova nella pagina `Transactions`
 
 ---
 
-# ⏰ Scenario 3 — Gestione Promemoria
+## 🔄 Flusso Principale (Happy Path)
 
-## 👤 Attore
-Utente
+```mermaid
+flowchart TD
+    A[Compilazione Form] --> B[Click su Aggiungi Transazione]
+    B --> C[Validazione Dati]
+    C --> D{Tipo = Uscita?}
+    D -- Si --> E[Controllo Budget]
+    D -- No --> F[Salvataggio DB]
+    E --> F
+    F --> G[Aggiornamento UI e Saldo]
+```
 
-## 📌 Descrizione
-L’utente crea promemoria per scadenze di pagamento future.
+### 📝 Passaggi
 
-## 🔄 Flusso principale
-1. L’utente accede alla sezione “Promemoria”
-2. Seleziona “Nuovo promemoria”
-3. Inserisce:
-   - titolo
-   - importo
-   - data di scadenza
-4. Il sistema valida i dati inseriti
-5. Il promemoria viene salvato nella tabella `reminders`
-6. Il sistema associa `user_id` e `tenant_id`
-7. Il promemoria viene visualizzato nella lista scadenze
-8. L’utente può segnarlo come “pagato”
+1. L'utente compila il form inserendo:
+   - Titolo
+   - Importo
+   - Categoria
+   - Tipo (`Entrata/Uscita`)
 
-## 🗄️ Tabella coinvolta
-- reminders
+2. L'utente clicca su **"Aggiungi Transazione"**
+
+3. Il sistema valida i dati  
+   *(backend: `transactionController.js`)*
+
+4. **[Inclusione: Controllo Budget]**
+   - Se il tipo è `"Uscita"`
+   - Il sistema interroga:
+
+```http
+POST /api/budget/check-will-exceed
+```
+
+5. Il sistema salva la transazione nel database **MySQL**
+
+6. Il sistema aggiorna:
+   - Lista transazioni
+   - Saldo totale nella UI
 
 ---
 
-# 🧠 Coerenza con il sistema
+## ⚠️ Flussi Alternativi
 
-Tutti gli scenari sono coerenti con:
+### A1 — Budget Superato
 
-- 👤 Attore unico: Utente
-- 🏢 Sistema multi-tenant (tenant_id)
-- 🗄️ Database MySQL:
-  - users
-  - transactions
-  - budgets
-  - reminders
+Se il controllo al punto 4 rileva che l'uscita supera il budget di categoria:
+
+```js
+window.confirm()
+```
+
+Il sistema mostra un warning chiedendo se procedere comunque.
 
 ---
 
-# ✔ Obiettivo
+### 📌 Post-condizioni
 
-Questi scenari descrivono le principali operazioni di scrittura e lettura sul database dell’applicazione e sono allineati al diagramma UML dei casi d’uso.
+- La transazione è registrata
+- Il saldo è aggiornato
+
+---
+
+# 2️⃣ Esportazione Report
+
+> Questo scenario estende la gestione delle transazioni.
+
+---
+
+### 👤 Attore Primario
+**Utente**
+
+### ✅ Pre-condizioni
+- Esistono transazioni caricate nella tabella
+
+---
+
+## 🔄 Flusso Principale
+
+```mermaid
+sequenceDiagram
+    participant U as Utente
+    participant FE as Frontend
+    participant FILE as File Generator
+
+    U->>FE: Click "Esporta PDF/CSV"
+    FE->>FE: Recupera dati stato React
+    FE->>FILE: Generazione file
+    FILE-->>U: Download automatico
+```
+
+### 📝 Passaggi
+
+1. L'utente visualizza la tabella delle transazioni
+
+2. L'utente clicca sul pulsante:
+   - `Esporta PDF`
+   - oppure `CSV`
+
+3. Il sistema (`ExportButtons.jsx`) cattura i dati attualmente presenti nello stato React
+
+4. Il sistema genera il file:
+   - usando `jsPDF`
+   - oppure logica `CSV`
+
+5. Il file viene scaricato automaticamente nel browser dell'utente
+
+---
+
+## 🛠️ Note Tecniche
+
+```txt
+L'esportazione avviene lato client
+senza chiamate API dedicate
+al rendering del file.
+```
+
+---
+
+# 3️⃣ Login e Inizializzazione Sessione
+
+> Fondamentale per il multi-tenancy.
+
+---
+
+### 👤 Attore Primario
+**Visitatore**
+
+### ✅ Pre-condizioni
+- Il visitatore possiede già un account creato
+
+---
+
+## 🔄 Flusso Principale
+
+```mermaid
+flowchart LR
+    A[Inserimento Credenziali] --> B[Verifica Credenziali]
+    B --> C[Generazione Access Token]
+    C --> D[Generazione Refresh Token]
+    D --> E[Invio Token al Frontend]
+    E --> F[Salvataggio localStorage]
+    F --> G[Redirect Dashboard]
+```
+
+### 📝 Passaggi
+
+1. Il visitatore inserisce:
+   - Email
+   - Password
+
+2. Il sistema (`authController.js`) verifica:
+   - credenziali
+   - `tenant_id` associato all'utente
+
+3. Il sistema genera:
+   - `Access Token` *(breve durata)*
+   - `Refresh Token` *(lunga durata)*
+
+4. Il sistema invia i token al frontend
+
+5. Il frontend:
+   - salva i token nel `localStorage`
+   - reindirizza l'utente alla `Dashboard`
+
+---
+
+## ❌ Flussi di Errore
+
+### E1 — Credenziali Errate
+
+Il sistema restituisce:
+
+```http
+401 Unauthorized
+```
+
+Il frontend mostra un messaggio di allerta.
+
+---
+
+## 📌 Post-condizioni
+
+L'utente è autenticato e tutte le successive chiamate API includeranno:
+
+```http
+Authorization: Bearer <token>
+```
